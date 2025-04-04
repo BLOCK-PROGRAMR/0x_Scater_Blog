@@ -9,8 +9,8 @@ const config = {
   favicon: 'img/favicon.ico',
 
   url: 'https://block-programr.github.io',
-  // baseUrl: '/0x_Scater_Blog/' || '/',
-  baseUrl: process.env.BASE_URL || '/',
+  baseUrl: '/',
+  // baseUrl: process.env.BASE_URL || '/',
 
   organizationName: 'BLOCK-PROGRAMR',
   projectName: '0x_Scater_Blog',
