@@ -1,3 +1,4 @@
+
 // @ts-check
 import { themes as prismThemes } from 'prism-react-renderer';
 
@@ -10,8 +11,8 @@ const config = {
   url: 'https://block-programr.github.io',
   baseUrl: '/0x_Scater_Blog/',
 
-  organizationName: 'BLOCK-PROGRAMR', // GitHub org/user name
-  projectName: '0x_Scater_Blog', // Repo name
+  organizationName: 'BLOCK-PROGRAMR',
+  projectName: '0x_Scater_Blog',
   deploymentBranch: 'gh-pages',
 
   onBrokenLinks: 'throw',
@@ -25,38 +26,71 @@ const config = {
   presets: [
     [
       'classic',
-      ({
+      {
         docs: {
-          sidebarPath: './sidebars.js',
+          id: 'default', // ✅ Set a default ID to fix plugin issue
+          path: 'docs',
+          routeBasePath: 'docs',
+          sidebarPath: require.resolve('./sidebars.js'),
         },
         blog: {
           showReadingTime: true,
         },
         theme: {
-          customCss: './src/css/custom.css',
+          customCss: require.resolve('./src/css/custom.css'),
         },
-      }),
+      },
+    ],
+  ],
+
+  plugins: [
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'projects',
+        path: 'projects',
+        routeBasePath: 'projects',
+        sidebarPath: require.resolve('./sidebars.js'),
+      },
+    ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'contacts',
+        path: 'contacts',
+        routeBasePath: 'contacts',
+        sidebarPath: require.resolve('./sidebars.js'),
+      },
     ],
   ],
 
   themeConfig: {
     navbar: {
-      title: '0x_Scater_Blog',
+      title: 'SCATER LABs',
       logo: {
         alt: 'Security Logo',
-        src: 'img/logo.svg',
+        src: 'img/logo.png',
       },
       items: [
-        { type: 'docSidebar', sidebarId: 'tutorialSidebar', position: 'left', label: 'Docs' },
-        { to: '/blog', label: 'Blog', position: 'left' },
+        { type: 'docSidebar', sidebarId: 'tutorialSidebar', position: 'right', label: 'Writeups' },
+        { to: '/blog', label: 'Blog', position: 'right' },
+        // { type: 'docSidebar', sidebarId: 'projectsSidebar', position: 'right', label: 'Projects' },
+        // { type: 'docSidebar', sidebarId: 'contactsSidebar', position: 'right', label: 'Contact' },
+        { to: '/projects', label: 'Projects', position: 'right' },   // ✅ Link directly instead of sidebar
+        { to: '/contacts', label: 'MyInfo', position: 'right' },
       ],
     },
-    footer: {
-      style: 'dark',
-      copyright: `Copyright © ${new Date().getFullYear()} 0x_Scater_Blog.`,
-    },
+
+    // footer: {
+    //   style: 'dark',
+    //   copyright: `Copyright © ${new Date().getFullYear()} SCATER LABs
+    //   <br />
+    //     “The only way to do great work is to love what you do.” - I love security
+    //   `,
+
+    // },
     prism: {
-      theme: prismThemes.dracula, // Dark mode theme
+      theme: prismThemes.dracula,
     },
   },
 
