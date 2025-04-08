@@ -1,7 +1,6 @@
 # Ethernaut Challenges
 
-
-🔗 **GitHub**: [View Level 1](https://github.com/NithinkumarPedda/ethernaut-solutions/tree/main/level1)
+🔗 **GitHub**: [View](https://github.com/BLOCK-PROGRAMR/SCATER70/tree/main/ctf/ethernaut)
 
 ## Level 1: Hello Ethernaut
 
