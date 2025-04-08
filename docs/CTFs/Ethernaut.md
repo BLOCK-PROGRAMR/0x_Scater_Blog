@@ -1,4 +1,4 @@
-# Ethernaut Challenges: Levels 1–5
+# Ethernaut Challenges
 
 
 🔗 **GitHub**: [View Level 1](https://github.com/NithinkumarPedda/ethernaut-solutions/tree/main/level1)
