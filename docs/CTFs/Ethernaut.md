@@ -336,7 +336,6 @@ Suite result: ok. 1 passed; 0 failed; finished in 1.24ms
 ```
 ---
 
-
 ## Level 9:Token
 
 ### 🔍 Vulnerable Function
@@ -556,7 +555,6 @@ Traces:
   │   │       ├─ MaliciousContract::receive() <== RECURSIVE CALL
   │   │       └─ Revert: panic: arithmetic underflow or overflow (0x11)
 ```
----
 ### 🔒Recommended Mitigation
 Use the Checks-Effects-Interactions pattern to prevent reentrancy:
 ``` solidity
@@ -621,8 +619,6 @@ An attacker can change their response between these two calls by flipping the re
     }
 }
 ```
-
-
 ### 🧪 Exploit Test
 ```solidity 
   function test_attack() public {
@@ -638,7 +634,6 @@ Elevator::top() → true
 Elevator::floor() → 1
 
 ```
----
 ### 🔒Recommended Mitigation
 Ensure external calls are not made multiple times for critical logic — or cache the result:
 ``` solidity
@@ -710,7 +705,6 @@ Elevator::top() → true
 Elevator::floor() → 1
 
 ```
----
 ### 🔒Recommended Mitigation
 Ensure external calls are not made multiple times for critical logic — or cache the result:
 ``` solidity
@@ -724,8 +718,6 @@ function goTo(uint256 _floor) public {
     }
 }
 ```
----
-
 ---
 ## Level 14 GateKeeperone
 
@@ -773,7 +765,6 @@ contract GatekeeperOne {
     }
 }
 ```
-
 **Vulnerability**: 
 Gate One: Requires a contract call (msg.sender != tx.origin).
 
@@ -868,8 +859,6 @@ Traces:
     └─ assertTrue(true)
 
 ```
----
-
 ---
 ## GateKeeperTwo
 
