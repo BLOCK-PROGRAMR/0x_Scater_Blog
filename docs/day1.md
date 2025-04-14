@@ -1,6 +1,13 @@
 ---
-title: "Day 1 - Security Research"
+title: Protected Page
 ---
 
-This is my first research post.
+import PasswordProtect from '../src/components/Password.js'
 
+<PasswordProtect>
+
+# 🔒 Secret Blog
+
+This is a secret blog post only visible after password entry.
+
+</PasswordProtect>
