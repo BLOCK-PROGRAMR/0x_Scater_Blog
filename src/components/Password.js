@@ -1,45 +1,4 @@
-// import React, { useState } from 'react';
 
-// const PasswordProtect = ({ children }) => {
-//     const [password, setPassword] = useState('');
-//     const [authenticated, setAuthenticated] = useState(false);
-
-//     const correctPassword = 'mysecret123'; // change this to your password
-
-//     const handleSubmit = (e) => {
-//         e.preventDefault();
-//         if (password === correctPassword) {
-//             setAuthenticated(true);
-//         } else {
-//             alert('Wrong password! Please try again.');
-//         }
-//     };
-
-//     if (!authenticated) {
-//         return (
-//             <div style={{ marginTop: '50px', textAlign: 'center' }}>
-//                 <h2>This page is protected</h2>
-//                 <form onSubmit={handleSubmit}>
-//                     <input
-//                         type="password"
-//                         placeholder="Enter password"
-//                         value={password}
-//                         onChange={(e) => setPassword(e.target.value)}
-//                         style={{ padding: '8px', fontSize: '16px' }}
-//                     />
-//                     <br />
-//                     <button type="submit" style={{ marginTop: '10px', padding: '8px' }}>
-//                         Submit
-//                     </button>
-//                 </form>
-//             </div>
-//         );
-//     }
-
-//     return <>{children}</>;
-// };
-
-// export default PasswordProtect;
 import React, { useState } from 'react';
 
 const PasswordProtect = ({ children }) => {

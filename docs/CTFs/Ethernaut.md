@@ -989,7 +989,6 @@ Ran 1 test suite in 1.21s (20.01ms CPU time): 1 tests passed, 0 failed, 0 skippe
 ```
 ---
 
----
 ## Level 16: NaughtCoin
 
 **AttackDesc**:The contract uses a lockTokens modifier to restrict the transfer function, preventing the original player from transferring tokens until a 10-year timelock has passed. However, the contract does not restrict transferFrom, which is part of the ERC20 standard. By approving a spender (attacker), the tokens can be transferred out before the timelock.
@@ -1052,7 +1051,7 @@ function transferFrom(
 Alternatively, enforce the timelock check for the player address directly within the modifier or base logic to apply to all transfers involving the player.
 
 ---
----
+
 ## Level 17:Preservation
 
 **AttackDesc**:
@@ -1137,7 +1136,6 @@ Prefer standard proxy patterns (like OpenZeppelin’s Transparent Proxy or UUPS)
 
 ---
 
----
 ## Level 18: Recovery
 **AttackDesc:**
 When contracts are deployed via new, their addresses are deterministic and based on the deployer’s address and nonce. In this challenge, the Recovery contract creates a SimpleToken contract using new, which means its address can be calculated off-chain or in a test. Once the address is recovered, the attacker can call its public destroy(address) function to selfdestruct the contract and reclaim trapped Ether.
@@ -1287,8 +1285,6 @@ Traces:
     └─ assertGt(attackerAfter, attackerBefore)
 ```
 ---
-
----
 ### Level 19: MagicNumber
 
 **AttackDesc:**
@@ -1342,7 +1338,7 @@ function test_attack() public {
     bytes memory bytecode = hex"69602a60005260206000f3600052600a6016f3";
 
     assembly {
-        solver := create(0, add(bytecode, 0x20), 0x13)
+        solver := create(0, add(bytecode, 0x20), 0x13)//The first 32 bytes of the bytecode are skipped because they define the length of the array. However, in this case, the bytecode is only 19 bytes, and the length of the datatype is already predefined.
     }
 
     require(solver != address(0), "contract solver deployment failed");
