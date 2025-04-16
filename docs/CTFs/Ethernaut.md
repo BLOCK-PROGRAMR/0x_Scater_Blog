@@ -1,7 +1,11 @@
+import DownloadPDFButton from '@site/src/components/DownloadPDFButton';
+
+
 # Ethernaut Challenges
 
 🔗 **GitHub**: [View](https://github.com/BLOCK-PROGRAMR/SCATER70/tree/main/ctf/ethernaut)
 
+<!-- <DownloadPDFButton /> -->
 ## Level 1: Hello Ethernaut
 
 ### 🔍 Vulnerable Function
