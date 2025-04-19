@@ -1,4 +1,5 @@
-import ProjectCard from "/home/nithin/security-blog/src/components/ProjectCard.js"
+
+import ProjectCard from '../src/components/ProjectCard.js'
 
 
 # WEB based Projects
