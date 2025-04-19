@@ -1,4 +1,1 @@
-# hello world nithin how are you
-
-
-# hii viper how are u?
+# Hii hello gus this is my new blog, here i can my latest reviews and learnings
