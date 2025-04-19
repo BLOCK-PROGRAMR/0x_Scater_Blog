@@ -1,7 +1,7 @@
 
 import ProjectCard from '../src/components/ProjectCard.js'
 
-# Blockchain based Projects:
+# Blockchain based Projects
 <ProjectCard 
   title="DSC Token" 
   description="A custom ERC-20 token built on the Ethereum blockchain. DSC is pegged to the Indian Rupee (INR), maintaining a 1:1 value while remaining decentralized." 

@@ -1,7 +1,7 @@
 
 import ProjectCard from '../src/components/ProjectCard.js'
 
-# Security
+# Daily Sec from SCATER LABs
 
 <ProjectCard 
   title="SCATER70" 
