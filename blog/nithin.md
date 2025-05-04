@@ -1,1 +1,0 @@
-# Hii hello gus this is my new blog, here i can my latest reviews and learnings
