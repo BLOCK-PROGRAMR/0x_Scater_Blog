@@ -1,6 +1,6 @@
 
 
-# 🚀 Understanding Rust Ownership: What Makes Rust Unique
+#  Understanding Rust Ownership: What Makes Rust Unique
 
 Rust’s ownership model is what makes it stand out from other languages. Unlike languages that use garbage collection (like Java or Go), Rust enforces memory safety **at compile time** without needing a runtime.
 
@@ -10,7 +10,7 @@ Rust’s ownership model is what makes it stand out from other languages. Unlike
 
 Rust’s ownership rules ensure memory is managed safely and efficiently, eliminating common bugs like dangling pointers, data races, or double frees.
 
-### 🔒 The Three Ownership Rules
+###  The Three Ownership Rules
 
 1. **Each value in Rust has a single owner.**
 2. **When the owner goes out of scope, the value is automatically dropped.**
