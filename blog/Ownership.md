@@ -29,8 +29,8 @@ fn main() {
     let s1 = String::from("hello"); // s1 owns the String
     let s2 = s1; // ownership moves to s2
 
-    // println!("{}", s1); // ❌ Error! s1 no longer owns the String
-    println!("{}", s2); // ✅ OK
+    // println!("{}", s1); //  Error! s1 no longer owns the String
+    println!("{}", s2); //  OK
 }
 ```
 
@@ -50,7 +50,7 @@ If you want to access data without taking ownership, **borrow** it using referen
 fn main() {
     let s1 = String::from("hello");
     print_length(&s1); // Pass a reference
-    println!("{}", s1); // ✅ Still valid!
+    println!("{}", s1); //  Still valid!
 }
 
 fn print_length(s: &String) {
@@ -94,7 +94,7 @@ fn main() {
     let mut s = String::from("hello");
 
     let r1 = &mut s;
-    let r2 = &mut s; // ❌ Error: cannot borrow `s` as mutable more than once at a time
+    let r2 = &mut s; // Error: cannot borrow `s` as mutable more than once at a time
 
     println!("{}, {}", r1, r2);
 }
@@ -117,7 +117,7 @@ Here’s an example that doesn’t compile:
 ```rust
 fn get_str() -> &String {
     let s = String::from("hello");
-    &s // ❌ Error!
+    &s //  Error!
 }
 ```
 
@@ -160,7 +160,7 @@ fn longest<'a>(x: &'a str, y: &'a str) -> &'a str {
 
 ---
 
-## 📚 Lifetimes 
+##  Lifetimes 
 
 1. Lifetimes help Rust verify reference safety at compile time.
 2. Most of the time, Rust **infers lifetimes** for you using *lifetime elision rules*.

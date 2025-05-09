@@ -15,7 +15,7 @@ const FeatureList = [
     title: 'Proficient In',
     description: (
       <>
-        .rs, .js, .sol, .ts
+        .rs, .js,.py ,.sol, .ts
       </>
     ),
   },

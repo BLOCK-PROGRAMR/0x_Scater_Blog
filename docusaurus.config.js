@@ -6,7 +6,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 const config = {
   title: '0x_Scater_Blog',
   tagline: 'Smart Contract Security & Blockchain Research',
-  favicon: 'img/logo.png',
+  favicon: 'img/logo.jpg',
 
   url: 'https://block-programr.github.io',
   baseUrl: '/',
