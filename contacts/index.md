@@ -1,4 +1,4 @@
-# 📬 Contact Me
+#  Contact Me
 
 Still learning, just like you — nobody's perfect 🙂  
 If you want to connect, share ideas, or build cool things together, feel free to reach out!

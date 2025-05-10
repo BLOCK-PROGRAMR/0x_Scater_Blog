@@ -1,4 +1,4 @@
-# 👨‍💻 About Me
+#  About Me
 
 Most people are running behind AI because it’s popular.  
 But I chose security — not because it’s easy, but because I feel it’s right for me.
