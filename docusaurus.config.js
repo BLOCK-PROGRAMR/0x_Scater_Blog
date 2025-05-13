@@ -6,7 +6,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 const config = {
   title: '0x_Scater_Blog',
   tagline: 'Smart Contract Security & Blockchain Research',
-  favicon: 'img/logo.jpg',
+  favicon: 'img/scaterr.png',
 
   url: 'https://block-programr.github.io',
   baseUrl: '/',
@@ -70,7 +70,7 @@ const config = {
       title: 'SCATER LABs',
       logo: {
         alt: 'Security Logo',
-        src: 'img/logo.png',
+        src: 'img/scaterr.png',
       },
       items: [
         { type: 'docSidebar', sidebarId: 'tutorialSidebar', position: 'right', label: 'Writeups' },
