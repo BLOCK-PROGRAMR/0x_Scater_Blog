@@ -14,15 +14,14 @@ ECDSA signatures (r, s, v) have two valid versions for every message:
    > (r, s, v)
    > (r, n - s, 27 ⬌ 28)
 Where:
-
 n is the secp256k1 curve order:
+
 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEBAAEDCE6AF48A03BBFD25E8CD0364141
 
-The contract does not enforce that s is in the lower half of the curve (s <= n / 2). As a result, two distinct but valid signatures can exist for the same message hash, and both will pass ecrecover.
+The contract does not enforce that s is in the lower half of the curve```(s <= n / 2)```. As a result, two distinct but valid signatures can exist for the same message hash, and both will pass ecrecover.
 
 ### VulnerabilityCode:
 ```solidity
-
 function changeController(
         uint8 v,
         bytes32 r,
