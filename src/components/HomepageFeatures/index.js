@@ -22,7 +22,8 @@ const FeatureList = [
 ];
 
 const UpdatesList = [
-  ' Multisig Wallet Security Analysis –2025-05-16(Blog)',
+  'Addded new blog posts on Etereum protocols',
+  'Upcoming Ethereum Lending Protocol project coming soon'
 
 
 ];
