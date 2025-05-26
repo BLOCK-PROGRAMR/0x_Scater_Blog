@@ -22,9 +22,10 @@ const FeatureList = [
 ];
 
 const UpdatesList = [
-  'Addded new blog posts on Etereum protocols',
-  'Upcoming Ethereum Lending Protocol project coming soon'
 
+  'Dwacra Lending protocol upcoming project on Ethereum.',
+  'Upside contract auditing started.',
+  'New Project on solana will be announced soon.'
 
 ];
 

@@ -98,7 +98,7 @@ contract SideAttranceAttack {
         payable(recovery).transfer(msg.value);//transfer to the recovery Account
     }
 }
-```
+```     
 ### Proof Of Exploit:
 
 ```yaml
