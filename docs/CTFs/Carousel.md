@@ -42,7 +42,7 @@ function encodeAnimalName(
                 (ANIMAL_MASK | NEXT_ID_MASK));
         }
 ```
-Here, (encodedAnimal << 160) places 96 bits starting from bit 160, which overwrites both nextCrateId (16 bits) and encodedAnimal (80 bits).
+Here, ```solidity (encodedAnimal << 160) ```places 96 bits starting from bit 160, which overwrites both nextCrateId (16 bits) and encodedAnimal (80 bits).
 
 There's no masking to preserve the old nextCrateId, so it can be replaced with a custom value.
 
