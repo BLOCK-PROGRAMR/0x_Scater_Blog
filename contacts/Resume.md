@@ -1,58 +1,53 @@
-##  Update soon!!!
-
-<!-- # Nithinkumar Pedda
+# Nithinkumar Pedda
 
 **Email:** [0xscater@gmail.com](mailto:0xscater@gmail.com)  
+
 **Phone:** +91 8328026105  
+
 **LinkedIn:** [linkedin.com/in/nithinkumar-pedda-865a1826a](https://www.linkedin.com/in/nithinkumar-pedda-865a1826a)  
-**GitHub:** [github.com/BLOCK-PROGRAMR](https://github.com/BLOCK-PROGRAMR)  
+
+**GitHub:** [github.com/BLOCK-PROGRAMR](https://github.com/BLOCK-PROGRAMR)
+
+**X:** [x.com/0x_Scater](https://x.com/0x_Scater)
+
 
 ---
 
-## 🔍 Summary
+## 🔹 About Me
 
-Passionate blockchain developer and smart contract auditor with a solid foundation in decentralized finance (DeFi) and Layer 2 solutions. As a 2nd-year Computer Science student at IIIT Nuzvid, I specialize in building secure smart contracts and actively contribute to competitive audits with platforms like **code4rena** and **CodeHawks**.
-
----
-
-## 🛠️ Skills
-
-- **Languages & Frameworks:** Solidity, JavaScript, Rust , React.js (MERN Stack)  
-- **Blockchain Integration:** Ethers.js, Web3.js  
-- **Tools:** Foundry, Hardhat, Slither, Aderyn, Fuzz Testing  
-- **Concepts:** Blockchain Architecture, Gas Optimization, DeFi Protocols
+I’m a blockchain developer and smart contract auditor with a strong interest in security and decentralized systems. Currently pursuing my B.Tech in Computer Science at IIIT Nuzvid, I specialize in writing secure smart contracts, auditing DeFi protocols, and contributing to competitive auditing platforms like **CodeHawks**, **Sherlock**, **Cantina** and **Code4rena**.
 
 ---
 
-## 🌐 Languages
+## 🧠 Skills & Tools
 
-- **English:** Fluent  
-- **Hindi:** Fluent  
-- **Telugu:** Native
+- **Languages:** Solidity, Rust, JavaScript ,python 
+- **Frameworks:** React.js ,Expressjs.
+- **Blockchain Tools:** Hardhat, Foundry, Slither, Aderyn, Fuzz Testing ,Mythril.
+- **Libraries:** Ethers.js, Web3.js ,Python Libraries
+- **Concepts:** Smart Contract Security, Auditing, DeFi, Layer 2 Protocols  
 
 ---
 
-## 💼 Experience
+## 💻 Experience
 
+### 🛡️ Smart Contract Auditor — *Freelance / Competitive Platforms*  
+**Ongoing**  
+- Auditing smart contracts for security vulnerabilities on platforms like **Sherlock**, **Code4rena**, and **CodeHawks**.  
+- Applying fuzzing, static analysis, and manual reviews to detect critical bugs.
 
-
-### 🔹 Fullstack Developer – *CodeAlpha* (Remote, India)  
-📆 *June 6, 2024 – September 30, 2024*  
-- Developed and deployed responsive, dynamic web applications.  
-- Collaborated on multiple client projects, focusing on performance and UI/UX.  
-- [View Experience Document](https://drive.google.com/file/d/1xNIfjm7jtm_-I0SI9VL5qNnyvCd2cJnS/view?usp=sharing)
-
-### 🔹 Smart Contract Auditor – *Competitive Platforms*  
-📆 *Ongoing*  
-- Conducted security audits on smart contracts via platforms like **Sherlock** and **CodeHawks**.  
-- Applied fuzzing, static analysis, and manual review for vulnerability detection.
+### 💼 Fullstack Developer — *CodeAlpha (Remote)*  
+**June 2024 – September 2024**  
+- Built and deployed modern web apps with a focus on performance and responsive design.  
+- Worked with client teams to deliver dynamic frontends and reliable backends.  
+- [View Experience Letter](https://drive.google.com/file/d/1xNIfjm7jtm_-I0SI9VL5qNnyvCd2cJnS/view?usp=sharing)
 
 ---
 
 ## 🎓 Education
 
-**B.Tech in Computer Science Engineering**  
-*Rajiv Gandhi University of Knowledge Technologies (RGUKT), Nuzvid*  
+**B.Tech – Computer Science Engineering**  
+*Rajiv Gandhi University of Knowledge Technologies (IIIT Nuzvid)*  
 📅 *Expected Graduation: 2027*
 
 ---
@@ -60,18 +55,26 @@ Passionate blockchain developer and smart contract auditor with a solid foundati
 ## 📜 Certifications
 
 - **Namaste React** – *NamasteDev*, Mar 2023  
-  [View Certificate](https://drive.google.com/file/d/1DhQ_L418CXAxMqMWMDJA4xYqZ7iVEWIc/view?usp=sharing)
+  [Certificate Link](https://drive.google.com/file/d/1DhQ_L418CXAxMqMWMDJA4xYqZ7iVEWIc/view?usp=sharing)
 
 - **Web3 Bootcamp** – *Udemy*, Jan 2024  
-  [View Certificate](https://drive.google.com/file/d/1bQUAFlR-kxQRlcCVzxT3ZLaC8j8ZQPKh/view?usp=sharing)
+  [Certificate Link](https://drive.google.com/file/d/1bQUAFlR-kxQRlcCVzxT3ZLaC8j8ZQPKh/view?usp=sharing)
 
 ---
 
-## 📞 Contact
+## 🌍 Languages
 
-I’m actively looking to contribute to security-driven blockchain projects. Feel free to reach out!
+- English – Fluent  
+- Hindi – Fluent  
+- Telugu – Native
+
+---
+
+## 📫 Let’s Connect
+
+I'm open to collaborating on blockchain security projects, DeFi protocols, and audits. Feel free to reach out via email or LinkedIn.
 
 - 📧 [0xscater@gmail.com](mailto:0xscater@gmail.com)  
 - 📱 +91 8328026105  
 - 🔗 [LinkedIn](https://www.linkedin.com/in/nithinkumar-pedda-865a1826a)  
-- 🐙 [GitHub](https://github.com/BLOCK-PROGRAMR) -->
+- 🐙 [GitHub](https://github.com/BLOCK-PROGRAMR)
