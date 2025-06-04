@@ -2,6 +2,13 @@
 
 Milestones in my security research journey 
 
+
+---
+> **June 3,2025**
+> **Participated in cantina prime Validator Contest**
+> _Focus on Reward distribution smart contract for validators._
+---
+
 ---
 
 > **May 10,2025**
