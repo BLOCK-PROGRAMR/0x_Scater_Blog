@@ -14,7 +14,7 @@ function HomepageHeader() {
     <header className={styles.heroBanner}>
       <div className="container">
         <Heading as="h1" className="hero__title">
-          {"SCATER LABs"}
+          {"0x_Scater"}
         </Heading>
         <p className="hero__subtitle">{siteConfig.tagline}</p>
       </div>
@@ -27,7 +27,7 @@ export default function Home() {
   return (
     <Layout
       title={siteConfig.title}
-      description="Smart Contract Security & Blockchain Research">
+      description="Smart Contract Security & Blockchain Development">
       <HomepageHeader />
       <main>
         <HomepageFeatures />

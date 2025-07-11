@@ -6,7 +6,7 @@ import { themes as prismThemes } from 'prism-react-renderer';
 const config = {
   title: '0x_Scater_Blog',
   tagline: 'Smart Contract Security & Blockchain Research',
-  favicon: 'img/scaterr.png',
+  favicon: 'img/0xscater.png',
 
   url: 'https://block-programr.github.io',
   baseUrl: '/',
@@ -63,6 +63,15 @@ const config = {
         sidebarPath: require.resolve('./sidebars.js'),
       },
     ],
+    [
+      '@docusaurus/plugin-content-docs',
+      {
+        id: 'audits',
+        path: 'audits',
+        routeBasePath: 'audits',
+        sidebarPath: require.resolve('./sidebars.js'),
+      },
+    ],
   ],
 
   themeConfig: {
@@ -70,10 +79,11 @@ const config = {
       title: 'SCATER LABs',
       logo: {
         alt: 'Security Logo',
-        src: 'img/scaterr.png',
+        src: 'img/0xscater.png',
       },
       items: [
         { type: 'docSidebar', sidebarId: 'tutorialSidebar', position: 'right', label: 'Writeups' },
+        { to: "/audits", label: 'Audits', position: 'right' }, // ✅ Add Audits link
         { to: '/blog', label: 'Blog', position: 'right' },
         // { type: 'docSidebar', sidebarId: 'projectsSidebar', position: 'right', label: 'Projects' },
         // { type: 'docSidebar', sidebarId: 'contactsSidebar', position: 'right', label: 'Contact' },

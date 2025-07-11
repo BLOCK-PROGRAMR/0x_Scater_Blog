@@ -5,7 +5,7 @@ import styles from './styles.module.css';
 const FeatureList = [
   {
     title: 'Nithinkumar Pedda',
-    description: <>Blockchain Security Researcher | Smart Contract Auditor</>,
+    description: <> Smart Contract Auditor | CTF Player(@HackerTroupe) | Blockchain Development</>,
   },
   {
     title: 'Proficient In',
@@ -13,18 +13,18 @@ const FeatureList = [
   },
   {
     title: 'Smart Contract Auditing',
-    description: <>Finding bugs, fixing flaws, securing contracts(in Solidity and Rust).</>,
+    description: <>Analysis the Protocol and understanding the behaviour then break the protocol find the flaws </>,
   },
-  {
-    title: 'Security Research and Analysis',
-    description: <>Exploring threats, exposing exploits, enhancing security.</>,
-  },
+  // {
+  //   title: 'Security Research and Analysis',
+  //   description: <>Exploring threats, exposing exploits, enhancing security.</>,
+  // },
 ];
 
 const UpdatesList = [
-
-  'Dwacra Lending protocol upcoming project on Ethereum.',
-  'Upside contract auditing started.',
+  'secured 58th place in Blitz CTF last weekend.',
+  'Working On Dwacra Project in EthereumBlockchain.',
+  'Participated in competative Audits Platforms like code4rena,cantina and sherlock.',
   'New Project on solana will be announced soon.'
 
 ];
